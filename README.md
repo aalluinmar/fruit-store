@@ -1,1 +1,1 @@
-Fruit Store
+Application on Fruit Store
