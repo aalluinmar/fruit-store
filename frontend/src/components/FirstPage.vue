@@ -413,7 +413,7 @@ export default {
           .then(res => {
             console.log(res);
             if (res.data.result === "email is already exists!") {
-              alert(res.data.result);
+              this.$Message.error(res.data.result);
               this.usertype = "";
               this.email = "";
               this.name = "";
@@ -448,13 +448,13 @@ export default {
           })
           .then(res => {
             if (res.data.result === "Invalid Email / Password / UserType") {
-              alert(res.data.result);
+              this.$Message.error(res.data.result);
               this.usertype = "";
               this.email = "";
               this.password = "";
               this.state = "default";
             } else if (res.data.result === "Invalid Password") {
-              alert(res.data.result);
+              this.$Message.error(res.data.result);
               this.usertype = "";
               this.email = "";
               this.password = "";
