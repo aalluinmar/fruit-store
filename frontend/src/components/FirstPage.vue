@@ -420,17 +420,14 @@ export default {
               this.password = "";
               this.state = "default";
             } else {
-              if (res.data.result.usertype === "Retailer") {
-                router.push({
-                  name: "Sellitems",
-                  params: { id: res.data.result.email }
-                });
-              } else {
-                router.push({
-                  name: "PurchaseItems",
-                  params: { id: res.data.result.email }
-                });
-              }
+              this.$Message.success("Registered Successfully... Login Now");
+              // if (res.data.result.usertype === "Retailer") {
+                this.usertype = "";
+                this.email = "";
+                this.name = "";
+                this.password = "";
+                this.state = "default";
+                this.showModal=false;
             }
           })
           .catch(err => {
@@ -447,6 +444,7 @@ export default {
             password: this.password
           })
           .then(res => {
+            console.log(res)
             if (res.data.result === "Invalid Email / Password / UserType") {
               this.$Message.error(res.data.result);
               this.usertype = "";
@@ -460,21 +458,21 @@ export default {
               this.password = "";
               this.state = "default";
             } else {
-              if (res.data.result.usertype === "Retailer") {
+              if (res.data.usertype === "Retailer") {
                 router.push({
                   name: "Sellitems",
-                  params: { id: res.data.result.email }
+                  params: { id: res.data.usertype }
                 });
               } else {
                 router.push({
                   name: "PurchaseItems",
-                  params: { id: res.data.result.email }
+                  params: { id: res.data.usertype }
                 });
               }
             }
           })
           .catch(err => {
-            console.log("error");
+            console.log("Not logged in");
           });
       }
     },
