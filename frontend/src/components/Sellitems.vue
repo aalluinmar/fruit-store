@@ -14,6 +14,7 @@
             <span class="icon-bar"></span>
           </button>
           <p class="navbar-brand" href="#">FRUIT STORE</p>
+          <a>{{showName}}</a>
         </div>
         <div class="collapse navbar-collapse" id="myNavbar">
           <ul class="nav navbar-nav navbar-right">
@@ -29,7 +30,8 @@
               <a>Contact</a>
             </li>
             <li>
-              <router-link to="/" style="float:right;font-size:135%;">Logout</router-link>
+              <a style="float:right;font-size:135%;"
+              @click="logout">Logout</a>
             </li>
           </ul>
         </div>
@@ -156,7 +158,10 @@
 </template>
 
 <script>
-module.exports = {
+
+import axios from 'axios';
+
+export default {
   data() {
     return {
       state: 'default',
@@ -164,6 +169,7 @@ module.exports = {
       state2: 'default2',
       header: 'Welcome to the Store',
       newItem: '',
+      showName: '',
       newItem1: null,
       loading: true,
       newItem2: null,
@@ -173,11 +179,7 @@ module.exports = {
     };
   },
   created() {
-    const temp = this.$route.params.id;
-    // console.log(temp);
-    localStorage.setItem('set', temp);
-    // fixed = localStorage.getItem('set');
-    // console.log(fixed);
+    this.showName = localStorage.getItem('user');
   },
   computed: {
     // characterCount(){
@@ -238,6 +240,16 @@ module.exports = {
       } else {
         this.$Message.error('Enter Price');
       }
+    },
+    logout() {
+      return new Promise(() => {
+        // context.commit('authLogout');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        this.$router.push('/');
+        delete axios.defaults.headers.common.Authorization;
+        // resolve();
+      });
     },
     saveItem() {
       this.items.push({
