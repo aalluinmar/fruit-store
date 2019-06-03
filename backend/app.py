@@ -7,14 +7,17 @@ from flask import render_template
 from flaskext.mysql import MySQL
 from mysql.connector import (connection)
 from passlib.hash import pbkdf2_sha256
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 import db
 import validationServer
 import passwordEncrypt
 
 app = Flask(__name__)
+app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
 # bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
 CORS(app)
-
 # @app.route('/')
 # def index():
 #     cnx = connection.MySQLConnection(user='root', password='',
@@ -47,7 +50,7 @@ def Login():
     valid, msg = validationServer.validateSignUP(post_data, ['email','password','usertype'])
     if(valid):
         d = db.DB()
-        hashed =  passwordEncrypt.encrypt_password(post_data.get('password'))
+        # hashed =  passwordEncrypt.encrypt_password(post_data.get('password'))
         passFromDb = d.get_rows("SELECT password from users where email='{email}' and usertype='{usertype}' ".format(**post_data))
         if passFromDb:
             passFromDb = ''.join(passFromDb[0])
@@ -55,7 +58,15 @@ def Login():
                 d.close_connection()
             else:
                 return jsonify({'result': "Invalid Password"})
-            return jsonify({'result': post_data})
+            access_token = create_access_token(identity = post_data['email'])
+            refresh_token = create_refresh_token(identity = post_data['email'])
+            print(access_token, refresh_token)
+            return jsonify({
+                'message': 'User {0} was created'.format(post_data['email']),
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'usertype': post_data['usertype']
+            })
         else:
             return jsonify({'result': "Invalid Email / Password / UserType"})
     else:
