@@ -400,6 +400,11 @@ export default {
       items: []
     };
   },
+  created() {
+    if(localStorage.getItem('status')){
+      next();
+    }
+  },
   methods: {
     register() {
       if (this.checkForm()) {
@@ -459,6 +464,11 @@ export default {
               this.state = "default";
             } else {
               if (res.data.usertype === "Retailer") {
+                let accessToken = res.data.access_token;
+                localStorage.setItem('token', accessToken);
+                axios.defaults.headers.common['Authorization'] = "Bearer " + accessToken;
+                localStorage.setItem('user', res.data.message);
+                localStorage.setItem('status', true);
                 router.push({
                   name: "Sellitems",
                   params: { id: res.data.usertype }
@@ -473,6 +483,10 @@ export default {
           })
           .catch(err => {
             console.log("Not logged in");
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('status');
+            console.log(err);
           });
       }
     },
