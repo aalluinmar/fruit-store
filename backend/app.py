@@ -62,7 +62,7 @@ def Login():
             refresh_token = create_refresh_token(identity = post_data['email'])
             print(access_token, refresh_token)
             return jsonify({
-                'message': 'User {0} was created'.format(post_data['email']),
+                'message': '{0}'.format(post_data['email']),
                 'access_token': access_token,
                 'refresh_token': refresh_token,
                 'usertype': post_data['usertype']
