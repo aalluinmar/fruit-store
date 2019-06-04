@@ -70,14 +70,10 @@ def rlogin():
 def adding():
     payload = request.get_json()
     email = payload['email']
-    # email="priya@gmail.com"
-    # print(email)
-    # usertype="Seller"
     usertype = payload['usertype']
     fruit = payload['fruit']
     quantity = payload['quantity']
     price = payload['price']
-    # print(email,price)
     db.cursor.execute(
         "SELECT fruit from fruits_table where fruit='" + str(fruit) + " ' and email ='" + str(email) + "' ")
     # print(cursor)
@@ -137,11 +133,10 @@ def updatingQuantity():
 
 @app.route('/updatingPrice', methods=['POST'])
 def updatingPrice():
-    print("---------------------------")
     payload = request.get_json()
     fruit = payload['fruit']
     price = payload['price']
-    print(fruit, price)
+    # print(fruit, price)
     db.cursor.execute(
         "UPDATE fruits_table set price='" + str(price) + " ' where fruit='" + str(fruit) + "' ")
     db.cnx.commit()
@@ -194,25 +189,25 @@ def fetchingallretailers():
     return jsonify({'result': result})
 
 
-@app.route('/storingItemsInDB', methods=['POST'])
-def storingItemsInDB():
+@app.route('/storingshoppingdetails', methods=['POST'])
+def storingshoppingdetails():
     payload = request.get_json()
-    email = payload['email']
-    Cust_FruitName = "Cust_FruitName",
-    Cust_FruitQuantity = 'Cust_FruitQuantity'
-    Cust_FruitPrice = 'Cust_FruitPrice'
-    Cust_FruitEnteredQuantity = 'Cust_FruitEnteredQuantity'
-    Cust_ClickedSellerEmail = 'Cust_ClickedSellerEmail'
-    db.cursor.execute(
-        "INSERT INTO customer_purchase_table (email,Cust_FruitName, Cust_FruitQuantity, Cust_FruitPrice, Cust_FruitEnteredQuantity, Cust_ClickedSellerEmail ) VALUES ('"+str(email)+"','"+str(Cust_FruitName)+"','"+str(Cust_FruitQuantity)+"','"+str(Cust_FruitPrice)+"','" + str(Cust_FruitEnteredQuantity)+"','"+str(Cust_ClickedSellerEmail)+"')")
-    # print(cursor)
-    rows = db.cursor.fetchall()
+    # payload = request.get_json()
+    # email = payload['email']
+    # print(len(payload))
+    CustomerEmail = payload['customerEmail']
+    for temp in payload['customerClickedDetails']:    
+        Cust_FruitName = temp['Cust_FruitName']
+        Cust_FruitQuantity = temp['Cust_FruitQuantity']
+        Cust_FruitPrice = temp['Cust_FruitPrice']
+        Cust_FruitEnteredQuantity = temp['Cust_FruitEnteredQuantity']
+        Cust_ClickedSellerEmail = temp['Cust_ClickedSellerEmail']
+        CustomerItemCostForParticularItem = (Cust_FruitPrice * Cust_FruitEnteredQuantity)
+        db.cursor.execute(
+            "INSERT INTO customer_purchase_table (CustomerEmail, Cust_FruitName, Cust_FruitQuantity, Cust_FruitPrice, Cust_FruitEnteredQuantity, Cust_ClickedSellerEmail, CustomerItemCostForParticularItem ) VALUES ('"+str(CustomerEmail)+"','"+str(Cust_FruitName)+"','"+str(Cust_FruitQuantity)+"','"+str(Cust_FruitPrice)+"','" + str(Cust_FruitEnteredQuantity)+"','"+str(Cust_ClickedSellerEmail)+"','"+str(CustomerItemCostForParticularItem)+"')")
+        # print(cursor)
     db.cnx.commit()
-    if len(rows) == 0:
-        return jsonify({'result': 0})
-    else:
-        result = {
-            'email': email,
+    result = {
             'Cust_FruitName': Cust_FruitName,
             'Cust_FruitQuantity': Cust_FruitQuantity,
             'Cust_FruitPrice': Cust_FruitPrice,
@@ -222,5 +217,26 @@ def storingItemsInDB():
     return jsonify({'result': result})
 
 
+# @app.route('/storingshoppingdetails', methods=['POST'])
+# def storingshoppingdetails():
+#     payload = request.get_json()
+#     # email = payload['email']
+#     Cust_FruitName = payload['Cust_FruitName']
+#     Cust_FruitQuantity = payload['Cust_FruitQuantity']
+#     Cust_FruitPrice = payload['Cust_FruitPrice']
+#     Cust_FruitEnteredQuantity = payload['Cust_FruitEnteredQuantity']
+#     Cust_ClickedSellerEmail = payload['Cust_ClickedSellerEmail']
+#     db.cursor.execute(
+#         "INSERT INTO customer_purchase_table (Cust_FruitName, Cust_FruitQuantity, Cust_FruitPrice, Cust_FruitEnteredQuantity, Cust_ClickedSellerEmail ) VALUES ('"+str(Cust_FruitName)+"','"+str(Cust_FruitQuantity)+"','"+str(Cust_FruitPrice)+"','" + str(Cust_FruitEnteredQuantity)+"','"+str(Cust_ClickedSellerEmail)+"')")
+#     db.cnx.commit()
+#     result = {
+#         'Cust_FruitName': Cust_FruitName,
+#         'Cust_FruitQuantity': Cust_FruitQuantity,
+#         'Cust_FruitPrice': Cust_FruitPrice,
+#         'Cust_FruitEnteredQuantity': Cust_FruitEnteredQuantity,
+#         'Cust_ClickedSellerEmail': Cust_ClickedSellerEmail
+#     }
+    
+#     return jsonify({'result': result})
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000,)
