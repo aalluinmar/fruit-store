@@ -25,6 +25,7 @@ CORS(app)
 #                                  database='nodejs_login1')
 #     return "<h1>Hello world</h1>"
 
+#User Registration
 @app.route('/register', methods=['POST'])
 def register():
     post_data = request.get_json()
@@ -44,6 +45,7 @@ def register():
     else:
         return jsonify({'result': msg})
 
+#User Login
 @app.route('/Login', methods=['POST'])
 def Login():
     post_data = request.get_json()
@@ -72,8 +74,61 @@ def Login():
     else:
         return jsonify({'result': msg})
 
-   
-    
+#Adding Fruits To DataBase
+@jwt_required
+@app.route('/addFruitsToDb', methods=['POST'])
+def addFruitsToDb():
+    post_data = request.get_json()
+    fruitName = post_data['fruitName']
+    quantity = post_data['quantity']
+    price = post_data['price']
+    sellerEmail = post_data['sellerEmail']
+    d = db.DB()
+    rows = d.get_rows("SELECT FruitName from seller_fruits where sellerEmail='{sellerEmail}' and FruitName='{fruitName}' ".format(**post_data))
+    if len(rows) > 0:
+        return jsonify({'result': "Fruit already exists!"})
+    else:
+        d.query_insert( "INSERT INTO seller_fruits (sellerEmail, FruitName, Quantity, Price) VALUES \
+            ('{sellerEmail}', '{fruitName}', '{quantity}', '{price}' )".format(**post_data))
+    d.close_connection()
+    return jsonify({'result':post_data})
+
+#Display existing Fruits to Seller Dashboard
+@jwt_required
+@app.route('/showAllFruits', methods=['POST'])
+def showAllFruits():
+    post_data = request.get_json()
+    sellerEmail = post_data['sellerEmail']
+    d = db.DB()
+    rows = d.get_rows("SELECT * from seller_fruits where sellerEmail='{sellerEmail}' ".format(**post_data))
+    if len(rows) == 0:
+        return jsonify({'result': "No Fruits exists!"})
+    else:
+        return jsonify({'FruitsFromDB': rows, 'numberOfFruitsFromDB': len(rows) })
+    d.close_connection()
+
+#update Seller fruit Quantity or Price
+@jwt_required
+@app.route('/updateSellerFruit', methods=['POST'])
+def updateSellerFruit():
+    post_data = request.get_json()
+    sellerEmail = post_data['sellerEmail']
+    whichType = post_data['whichType']
+    enteredThing = post_data['enteredThing']
+    fruitName = post_data['fruitName']
+    d = db.DB()
+    if whichType == "quantity":    
+        d.query_insert( "UPDATE seller_fruits set Quantity = {enteredThing} where sellerEmail='{sellerEmail}' and FruitName='{fruitName}'".format(**post_data))
+        d.close_connection()
+        return jsonify({'result': "quantity updated"})
+    elif whichType == "price":
+        d.query_insert( "UPDATE seller_fruits set Price = {enteredThing} where sellerEmail='{sellerEmail}' and FruitName='{fruitName}'".format(**post_data))
+        d.close_connection()
+        return jsonify({'result': "price updated"})
+    else:
+        d.query_insert( "DELETE from seller_fruits where sellerEmail='{sellerEmail}' and FruitName='{fruitName}'".format(**post_data))
+        d.close_connection()
+        return jsonify({'result': "fruit deleted"})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
