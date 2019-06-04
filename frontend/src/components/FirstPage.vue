@@ -401,8 +401,14 @@ export default {
     };
   },
   created() {
-    if(localStorage.getItem('status')){
-      next();
+    // router.requireAuth;
+    // this.beforeEach = router.requireAuth;
+    if(localStorage.getItem('status') === "SellerLoggedIn"){
+      this.$router.push('/Sellitems');
+    } else if(localStorage.getItem('status') === "CustomerLoggedIn"){
+      this.$router.push('/PurchaseItems');
+    } else {
+      this.$router.push('/');
     }
   },
   methods: {
@@ -463,21 +469,26 @@ export default {
               this.password = "";
               this.state = "default";
             } else {
-              if (res.data.usertype === "Retailer") {
+              if(!localStorage.getItem('status')){
                 let accessToken = res.data.access_token;
                 localStorage.setItem('token', accessToken);
                 axios.defaults.headers.common['Authorization'] = "Bearer " + accessToken;
                 localStorage.setItem('user', res.data.message);
-                localStorage.setItem('status', true);
-                router.push({
-                  name: "Sellitems",
-                  params: { id: res.data.usertype }
-                });
+                if (res.data.usertype === "Retailer") {
+                  localStorage.setItem('status', "SellerLoggedIn");
+                  router.push({
+                    name: "Sellitems",
+                    params: { id: res.data.usertype }
+                  });
+                } else {
+                  localStorage.setItem('status', "CustomerLoggedIn");
+                  router.push({
+                    name: "PurchaseItems",
+                    params: { id: res.data.usertype }
+                  });
+                }
               } else {
-                router.push({
-                  name: "PurchaseItems",
-                  params: { id: res.data.usertype }
-                });
+                this.$Message.error(localStorage.getItem('user')+" has logged in");
               }
             }
           })

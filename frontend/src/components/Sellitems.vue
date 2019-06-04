@@ -19,25 +19,27 @@
         <div class="collapse navbar-collapse" id="myNavbar">
           <ul class="nav navbar-nav navbar-right">
             <li>
-              <a
-              >Home</a>
+              <a>Home</a>
             </li>
             <li>
-              <a @click.prevent="addFruits = true"
-              >Add Items</a>
+              <a @click.prevent="addFruits = true">Add Items</a>
             </li>
             <li>
-              <a>Contact</a>
+              <a>Transactions</a>
             </li>
             <li>
-              <a style="float:right;font-size:135%;"
-              @click="logout">Logout</a>
+              <a style="float:right;font-size:135%;" @click="logout">Logout</a>
             </li>
           </ul>
         </div>
       </div>
     </nav>
-    <br><br><br><br><br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+    <center><h2><br>Fruits Details</h2></center>
     <div v-if="addFruits">
       <transition name="modal">
         <div class="modal-mask">
@@ -48,31 +50,52 @@
                   <button type="button" class="close" @click="addFruits=false">
                     <span aria-hidden="true">&times;</span>
                   </button>
-                  <h4 class="modal-title"><center>Add Items</center></h4>
+                  <h4 class="modal-title">
+                    <center>Add Items</center>
+                  </h4>
                 </div>
                 <div class="modal-body">
                   <div>
-                   <center>
-                      <Input prefix="ios-basket" placeholder="Enter Fruit" size="large"
-                                v-model="newItem" onkeypress="return (event.charCode > 64 &&
+                    <center>
+                      <Input
+                        prefix="ios-basket"
+                        placeholder="Enter Fruit"
+                        size="large"
+                        v-model="newItem"
+                        onkeypress="return (event.charCode > 64 &&
                                 event.charCode < 91) || (event.charCode > 96 &&
-                                event.charCode < 123)" style="width: auto" />
+                                event.charCode < 123)"
+                        style="width: auto"
+                      />
                       <br>
                       <br>
-                      <Input prefix="ios-basket" placeholder="Enter QUantity" size="large"
-                            v-on:keypress="isNumber($event)"
-                            v-model="newItem1" style="width: auto" />
-                      <br><br>
-                      <Input prefix="ios-basket" placeholder="Enter Price" size="large"
-                              v-on:keypress="isAnyNumber($event)"
-                              v-model="newItem2" style="width: auto" />
-                              <br><br>
-                      <button type="submit"
+                      <Input
+                        prefix="ios-basket"
+                        placeholder="Enter QUantity"
+                        size="large"
+                        v-on:keypress="isNumber($event)"
+                        v-model="newItem1"
+                        style="width: auto"
+                      />
+                      <br>
+                      <br>
+                      <Input
+                        prefix="ios-basket"
+                        placeholder="Enter Price"
+                        size="large"
+                        v-on:keypress="isAnyNumber($event)"
+                        v-model="newItem2"
+                        style="width: auto"
+                      />
+                      <br>
+                      <br>
+                      <button
+                        type="submit"
                         class="btn btn-primary"
                         v-if="newItem.length > 0 &&newItem1 > 0 && newItem2 > 0"
                         @click="saveItem"
                       >Save Item</button>
-                   </center>
+                    </center>
                   </div>
                 </div>
               </div>
@@ -86,8 +109,6 @@
         <center>
           <div id="added-fruits">
             <li
-              :class="{strikeout: item.purchased}"
-              @click="togglePurchased(item)"
               style="color:#22292F"
             >Fruit Name: {{ item.label }}</li>
             <li style="color:#22292F">
@@ -96,90 +117,164 @@
             </li>
             <li style="color: #22292F">Fruit Price: {{item.label2}}</li>
             <li>
-              <Button type="primary" v-if="state1 === 'default1'"
-                @click="changeState('update')">Update Quantity</Button>
-              <!-- <button
-                class="qty btn-primary"
-                v-if="state1 === 'default1'"
-                @click="changeState('update')"
-              >Update Quantity</button> -->
+              <Button
+                type="primary"
+                @click="UpdateQuantityBoolean = true,DisplayFruit = item.label,FruitIndex = index"
+              >Update Quantity</Button>
+              <div v-if="UpdateQuantityBoolean">
+                <transition name="modal">
+                  <div class="modal-mask">
+                    <div class="modal-wrapper">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close"
+                            @click="UpdateQuantityBoolean = false">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title">
+                              <center>Update Quantity</center>
+                            </h4>
+                          </div>
+                          <div class="modal-body">
+                            <div>
+                              <center>
+                               <div>
+                                 <h3 id="fruitNameDisplayOnModal">Fruit Name:  {{ DisplayFruit }}
+                                 </h3>
+                                 <br>
+                                  <input
+                                    type="text"
+                                    id="update"
+                                    placeholder="Update Quantity"
+                                    @keyup="quan = $event.target.value"
+                                    style="color:blue"
+                                  >
+                                  <!-- <Input prefix="ios-basket"
+                                  placeholder="Update QUantity" size="large"
+                                  @keyup="email = $event.target.value" style="width: auto" />-->
+                                  <!-- <button class="qty btn-primary"
+                                  @click="update(index,item.label)">Update</button>-->
+                                  <!-- &nbsp; -->
+                                  <Button type="info"
+                                  @click="update(FruitIndex,DisplayFruit)">Update</Button>
+                                </div>
+                              </center>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </transition>
+              </div>
             </li>
             <br>
-            <div v-if="state === 'update'">
-              <input
-                type="text"
-                id="update"
-                placeholder="Update Quantity"
-                @keyup="email = $event.target.value"
-                style="color:blue"
-              >
-              <!-- <Input prefix="ios-basket"
-              placeholder="Update QUantity" size="large"
-              @keyup="email = $event.target.value" style="width: auto" /> -->
-              <!-- <button class="qty btn-primary"
-              @click="update(index,item.label)">Update</button> -->
-              &nbsp;
-              <Button type="info" @click="update(index,item.label)">Update</Button>
-            </div>
             <li>
-              <!-- <button
-                class="qty btn-primary"
-                v-if="state2 === 'default2'"
-                @click="changeState('updateprice')"
-              >Update Price</button> -->
-              <Button type="primary" v-if="state2 === 'default2'"
-                @click="changeState('updateprice')">Update Price</Button>
+              <Button
+                type="primary"
+                @click="UpdatePriceBoolean = true,DisplayFruit = item.label,FruitIndex = index"
+              >Update Price</Button>
+              <div v-if="UpdatePriceBoolean">
+                <transition name="modal">
+                  <div class="modal-mask">
+                    <div class="modal-wrapper">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close"
+                            @click="UpdatePriceBoolean = false">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title">
+                              <center>Update Price</center>
+                            </h4>
+                          </div>
+                          <div class="modal-body">
+                            <div>
+                              <center>
+                               <div>
+                                 <h3 id="fruitNameDisplayOnModal">Fruit Name:  {{ DisplayFruit }}
+                                 </h3>
+                                 <br>
+                                  <input
+                                    type="text"
+                                    id="updateprice"
+                                    placeholder="Update Price"
+                                    @keyup="pass1 = $event.target.value"
+                                    style="color:blue"
+                                  >
+                                  <!-- <button class="qty btn-primary"
+                                  @click="updateprice(index,item.label)">Update</button>-->
+                                  <Button type="info"
+                                  @click="updateprice(FruitIndex,DisplayFruit)">Update</Button>
+                                </div>
+                              </center>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </transition>
+              </div>
             </li>
-            <div v-if="state === 'updateprice'">
-              <input
-                type="text"
-                id="updateprice"
-                placeholder="Update Price"
-                @keyup="pass1 = $event.target.value"
-                style="color:blue"
-              >
-              <!-- <button class="qty btn-primary"
-              @click="updateprice(index,item.label)">Update</button> -->
-              <Button type="info" @click="updateprice(index,item.label)">Update</Button>
-            </div>
+            <li style="float:right;" id="deleteIconHover">
+              <Icon type="ios-trash" size="30"
+              @click="deleteParticularFruitFromSeller(item.label,index)"/>
+            </li>
+            <br>
           </div>
         </center>
       </ul>
-    </div><br>
+    </div>
+    <br>
     <center>
-      <br><br><br>
-      <h3 v-if="items.length === 0" style="text-align:
-      center;color:#e25f13;">Oops!! No Fruits in Your Account.</h3>
+      <br>
+      <br>
+      <br>
+      <h3
+        v-if="items.length === 0"
+        style="text-align:
+      center;color:#e25f13;"
+      >Oops!! No Fruits in Your Account.</h3>
     </center>
-    <footer class="container-fluid text-center" id="footer"> <br>
-      <center id="footer_text">© Copyright Agency 2019.</center> <br>
+    <footer class="container-fluid text-center" id="footer">
+      <br>
+      <center id="footer_text">© Copyright Agency 2019.</center>
+      <br>
     </footer>
   </div>
 </template>
 
 <script>
-
 import axios from 'axios';
 
+/* eslint-disable */
 export default {
   data() {
     return {
-      state: 'default',
-      state1: 'default1',
-      state2: 'default2',
-      header: 'Welcome to the Store',
-      newItem: '',
-      showName: '',
+      state: "default",
+      state1: "default1",
+      state2: "default2",
+      header: "Welcome to the Store",
+      UpdateQuantityBoolean: false,
+      UpdatePriceBoolean: false,
+      FruitIndex: null,
+      newItem: "",
+      showName: "",
       newItem1: null,
       loading: true,
+      DisplayFruit: '',
       newItem2: null,
       items: [],
       addFruits: false,
-      fixed: '',
+      fixed: ""
     };
   },
   created() {
-    this.showName = localStorage.getItem('user');
+    this.showName = localStorage.getItem("user");
+    this.showAllFruits();
   },
   computed: {
     // characterCount(){
@@ -187,41 +282,108 @@ export default {
     // },
     reversedItems() {
       return this.items.slice(0);
-    },
+    }
   },
   methods: {
-    // addFruitsToDb(fruitName, quantity, price) {
-    //     axios
-    //       .post(process.env.API_URL + "/addFruitsToDb", {
-    //         // usertype: this.usertype,
-    //         // name: this.name,
-    //         // email: this.email,
-    //         // password: this.password
-    //       })
-    //       .then(res => {
-    //         console.log(res);
-    //       })
-    //       .catch(err => {
-    //         console.log("error");
-    //       });
-    // },
+    async deleteParticularFruitFromSeller(FruitName,ind){
+      await this.updateSellerFruit(FruitName,"delete",ind);
+      this.showAllFruits();
+      this.items = [];
+      
+    },
+    async showAllFruits(){
+      await axios
+        .post(process.env.API_URL + "/showAllFruits", {
+          sellerEmail: this.showName,
+        })
+        .then(res => {
+          if(res.data.numberOfFruitsFromDB === 0){
+            this.$Message.error("res.data.result");
+          } else {
+            for(var i = 0; i < res.data.numberOfFruitsFromDB; i++){
+              this.items.push({
+                label: res.data.FruitsFromDB[i][1],
+                label1: res.data.FruitsFromDB[i][2],
+                label2: res.data.FruitsFromDB[i][3],
+              })
+            }
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          console.log('error');
+        });
+    },
+    async addFruitsToDb(fruitName, quantity, price) {
+      await axios
+        .post(process.env.API_URL + "/addFruitsToDb", {
+          fruitName: fruitName,
+          quantity: quantity,
+          price: price,
+          sellerEmail: this.showName,
+        })
+        .then(res => {
+          if(res.data.result === "Fruit already exists!"){
+            this.$Message.error(res.data.result);
+          } else {
+            this.$Message.success("Fruit Added Successfully");
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          console.log('error');
+        });
+        this.items = [];
+        this.showAllFruits();
+    },
+    async updateSellerFruit(FruitName,whichType,enteredThing){
+      await axios
+        .post(process.env.API_URL + "/updateSellerFruit", {
+          fruitName: FruitName,
+          whichType: whichType,
+          enteredThing: enteredThing,
+          sellerEmail: this.showName,
+        })
+        .then(res => {
+          if(res.data.result === "quantity updated"){
+            this.$Message.success("Updated Quantity Successfully");
+          }
+          else if(res.data.result === "price updated"){
+            this.$Message.success("Updated Price Successfully");
+          } else {
+            this.$Message.success("Deleted Fruit Successfully");
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          console.log('error');
+        });
+        // this.items = [];
+        // this.showAllFruits();
+    },
     update(ind, lab) {
-      const temp = this.email;
+      const temp = this.quan;
+      // console.log(temp, ind);
       this.lab = lab.toString();
-      // console.log(this.email);
+      // console.log(this.quan);
       //   console.log(this.items.indexOf(45, 2))
       if (this.items[ind].label === lab && temp) {
         //   console.log(this.items[0].label,ind);
         // console.log(this.items[ind].label,ind,lab,temp);
+        this.updateSellerFruit(lab,"quantity",temp);
         this.items[ind].label1 = temp;
-        // console.log(this.email);
-        this.email = '';
-        // console.log(this.email);
+        // console.log(this.quan);
+        this.quan = '';
+        // console.log(this.quan);
         this.state = 'default1';
+        this.UpdateQuantityBoolean = false;
+        ind = null;
         // this.newit='';
         // $("#update").val("");
       } else {
+        this.quan = '';
         this.$Message.error('Enter Quantity');
+        this.UpdateQuantityBoolean = false;
       }
     },
     updateprice(ind, lab) {
@@ -231,14 +393,18 @@ export default {
       if (this.items[ind].label === lab && temp) {
         //   console.log(this.items[0].label,ind);
         // console.log(this.items[ind].label,ind,lab,temp);
+        this.updateSellerFruit(lab,"price",temp);
         this.items[ind].label2 = temp;
         this.pass1 = '';
         // console.log(this.pass1);
         this.state = 'default2';
+        this.UpdatePriceBoolean = false;
         // console.log(this.pass1);
         // $("#updateprice").val("");
       } else {
+        this.pass1 = '';
         this.$Message.error('Enter Price');
+        this.UpdatePriceBoolean = false;
       }
     },
     logout() {
@@ -246,19 +412,14 @@ export default {
         // context.commit('authLogout');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('status');
         this.$router.push('/');
         delete axios.defaults.headers.common.Authorization;
         // resolve();
       });
     },
     saveItem() {
-      this.items.push({
-        label: this.newItem,
-        label1: this.newItem1,
-        label2: this.newItem2,
-        purchased: false,
-      });
-      // this.addFruitsToDb(this.newItem, this.newItem1, this.newItem2);
+      this.addFruitsToDb(this.newItem, this.newItem1, this.newItem2);
       this.newItem = '';
       this.newItem1 = null;
       this.newItem2 = null;
@@ -267,7 +428,9 @@ export default {
     isNumber(evt) {
       this.evt = evt || window.event;
       const charCode = evt.which ? evt.which : evt.keyCode;
-      if (charCode > 31 && (charCode < 48 || charCode > 57)) { evt.preventDefault(); }
+      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        evt.preventDefault();
+      }
       return true;
     },
     isAnyNumber(evt) {
@@ -288,9 +451,9 @@ export default {
       this.state = newState;
       this.newItem = '';
     },
-    togglePurchased(item) {
-      this.item.purchased = !item.purchased;
-    },
+    // togglePurchased(item) {
+    //   this.item.purchased = !item.purchased;
+    // },
   },
 };
 </script>
@@ -309,12 +472,18 @@ export default {
   background-color: #333;
   position: fixed;
   bottom: 0;
-  width: 100%;
-  padding: 1rem;
+  width: 10%;
+  padding: -2.5rem;
   text-align: center;
+}
+#deleteIconHover:hover{
+  transform:scale(2);
 }
 #footer_text {
   color: white;
+}
+#fruitNameDisplayOnModal{
+  color: #22292f;
 }
 body {
   background: #eff8ff;
