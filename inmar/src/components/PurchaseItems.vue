@@ -75,17 +75,6 @@
                                 <span v-if="product.label1 === 0" style="color:red">OUT OF STOCK</span>
                               </div>
                             </td>
-                            <!-- <div id="items-list2">
-                                      <td id="secondDivision" v-if="product.label3 > 0">
-                                        <h3>PRODUCTS SUMMARY</h3>
-                                        <br>
-                                        <h4>{{product.name}}</h4>
-                                        <p>
-                                          <br>
-                                          {{product.label3}} x Rs {{product.label2}} = Rs {{product.label3*product.label2}}
-                                        </p>
-                                      </td> 
-                            </div>-->
                           </tr>
                         </table>
                       </h4>
@@ -100,15 +89,16 @@
       <div>
         <h1>Here ur collection of fruits</h1>
         <h4>PRODUCTS SUMMARY</h4>
-        <h4 v-for="product in products" :key="product.name">
-        <table><tr>
-          <td id="secondDivision" v-if="product.label3 > 0">
-            <h4>{{product.label}}</h4>
-            <p>
-              {{product.label3}} x Rs {{product.label2}} = Rs {{product.label3*product.label2}}
-            </p>
-          </td></tr>
-        </table>
+        <h4 v-for="product in customerClickedItemsToStoreInDb" :key="product.name">
+          <table>
+            <tr>
+              <td id="secondDivision" v-if="product.Cust_FruitEnteredQuantity > 0">
+                <h1>{{product.Cust_ClickedSellerEmail}}</h1>
+                <h4>{{product.Cust_FruitName}}</h4>
+                <p>{{product.Cust_FruitEnteredQuantity}} x Rs {{product.Cust_FruitPrice}} = Rs {{product.Cust_FruitEnteredQuantity*product.Cust_FruitPrice}}</p>
+              </td>
+            </tr>
+          </table>
         </h4>
       </div>
     </div>
@@ -159,12 +149,14 @@ export default {
   },
   computed: {
     totalProducts() {
-      return this.products.reduce((sum, product) => {
-        if (product.label1 < product.label3) {
-          this.product.label3 = product.label1;
+      return this.customerClickedItemsToStoreInDb.reduce((sum, product) => {
+        if (product.Cust_FruitQuantity < product.Cust_FruitEnteredQuantity) {
+          this.product.Cust_FruitEnteredQuantity = product.Cust_FruitQuantity;
           this.alert("You have entered more Quantity that existing");
         }
-        return sum + product.label3 * product.label2;
+        return (
+          sum + product.Cust_FruitEnteredQuantity * product.Cust_FruitPrice
+        );
       }, 0);
     }
   },
@@ -180,8 +172,33 @@ export default {
       }
       return true;
     },
-    show() {
-      this.$modal.show("hello-world");
+    async show() {
+      // this.$modal.show("hello-world");
+      // this.email = email;
+        await axios
+        .post(process.env.API_URL + "/storingshoppingdetails", {
+          // email: email,
+          customerClickedDetails: this.customerClickedItemsToStoreInDb,
+          customerClickedDetailsSize: this.customerClickedItemsToStoreInDb.length,
+          customerEmail: this.email,
+        })
+        .then(res => {
+           var numberOfRows = res.data.result.numberOfRows;
+           this.rows = numberOfRows;
+           this.customerClickedItemsToStoreInDb2 = res.data.result.fruitDetails;
+          console.log(res);
+          console.log(res.data.result);
+          if (res.data.result === 0) {
+            alert("NOT added to db");
+          }
+          else
+             alert(" added to db");
+        })
+        .catch(err => {
+          console.log("neeraja");
+        });
+
+      // console.log(this.customerClickedItemsToStoreInDb);
     },
     async get_fruits(retailername) {
       this.checkRetailerEmail = retailername;
@@ -192,14 +209,8 @@ export default {
         })
         .then(res => {
           var numberOfRows = res.data.result.numberOfRows;
-          // console.log(res.data.result);
-          // console.log(numberOfRows);
           this.rows = numberOfRows;
-          // this.items.push({
-          //   label: res.data.result.
-          // })
           this.products1 = res.data.result.fruitDetails;
-          // console.log(this.products1);
         })
         .catch(err => {
           console.log("neeraja");
@@ -213,7 +224,7 @@ export default {
       Cust_FruitEnteredQuantity,
       Cust_ClickedSellerEmail
     ) {
-      if (Cust_FruitQuantity !== 0) {
+      if (Cust_FruitQuantity !== 0 && Cust_FruitEnteredQuantity !== 0) {
         // console.log(Cust_FruitName, Cust_FruitQuantity, Cust_FruitPrice, Cust_FruitEnteredQuantity, Cust_ClickedSellerEmail);
         if (this.customerClickedItemsToStoreInDb.length === 0) {
           this.customerClickedItemsToStoreInDb.push({
@@ -224,44 +235,40 @@ export default {
             Cust_ClickedSellerEmail: Cust_ClickedSellerEmail
           });
         } else {
-          console.log(this.customerClickedItemsToStoreInDb.length);
-          for(var i = 0; i < this.customerClickedItemsToStoreInDb.length; i++){
-            
-            if(this.customerClickedItemsToStoreInDb[i].Cust_FruitName === Cust_FruitName && this.customerClickedItemsToStoreInDb[i].Cust_ClickedSellerEmail === Cust_ClickedSellerEmail ){
-              this.customerClickedItemsToStoreInDb.push({
-                Cust_FruitName: Cust_FruitName,
-                Cust_FruitQuantity: Cust_FruitQuantity,
-                Cust_FruitPrice: Cust_FruitPrice,
-                Cust_FruitEnteredQuantity: Cust_FruitEnteredQuantity,
-                Cust_ClickedSellerEmail: Cust_ClickedSellerEmail
-              });
+          let notThere;
+          for (
+            var i = 0;
+            i < this.customerClickedItemsToStoreInDb.length;
+            i++
+          ) {
+            if (
+              this.customerClickedItemsToStoreInDb[i].Cust_FruitName ===
+                Cust_FruitName &&
+              this.customerClickedItemsToStoreInDb[i]
+                .Cust_ClickedSellerEmail === Cust_ClickedSellerEmail
+            ) {
+              this.customerClickedItemsToStoreInDb[
+                i
+              ].Cust_FruitEnteredQuantity = Cust_FruitEnteredQuantity;
+              notThere = 0;
+              break;
             }
+            notThere = 1;
           }
+          if (notThere) {
+            this.customerClickedItemsToStoreInDb.push({
+              Cust_FruitName: Cust_FruitName,
+              Cust_FruitQuantity: Cust_FruitQuantity,
+              Cust_FruitPrice: Cust_FruitPrice,
+              Cust_FruitEnteredQuantity: Cust_FruitEnteredQuantity,
+              Cust_ClickedSellerEmail: Cust_ClickedSellerEmail
+            });
+          }
+          Cust_FruitEnteredQuantity = "";
         }
         console.log(this.customerClickedItemsToStoreInDb);
       }
     },
-    //   await this.customerClickedItems();
-    //   this.customerClickedItemsToStoreInDb = [];
-    //   axios
-    //     .post(process.env.I @click="show"nDB", {
-    //       email:this.email,
-    //       Cust_FruitName:this.Cust_FruitName,
-    //       Cust_FruitQuantity: this.Cust_FruitQuantity,
-    //       Cust_FruitPrice: this.Cust_FruitPrice,
-    //       Cust_FruitEnteredQuantity: this.Cust_FruitEnteredQuantity,
-    //       Cust_ClickedSellerEmail: this.Cust_ClickedSellerEmail
-    //     })
-    //   .then(res => {
-    //       var numberOfRows = res.data.result.numberOfRows;
-    //       this.rows = numberOfRows;
-    //       this.customerClickedItemsToStoreInDb2 = res.data.result.fruitDetails;
-    //       console.log(customerClickedItemsToStoreInDb2);
-    //       })
-    //     .catch(err => {
-    //       console.log("neeraja");
-    //     });
-    // },
     async displayallfruits(ind, retailername) {
       this.retailername = retailername.toString();
       await this.get_fruits(retailername);
@@ -440,23 +447,5 @@ h2 {
   padding: 20px 0;
   font-size: 30px;
 }
-/* #items-list2 {
-  align-self: auto;
-  color: #fff;
-  font-size: 64px;
-  font-family: "Cookie", cursive;
-  font-weight: normal;
-  line-height: 1;
-  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
-  background-color: #673ab6;
-  border-radius: 2px;
-  box-shadow: 0 1px 1px #ccc;
-  width: 300px;
-  padding: 35px 60px;
-  margin: 50px auto;
-  font: 15px/1.3 "Open Sans", sans-serif;
-  color: #5e5b64;
-  text-align: center;
-} */
 </style>
 
