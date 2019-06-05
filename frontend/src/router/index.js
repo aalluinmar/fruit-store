@@ -37,6 +37,7 @@ export default new Router({
       path: '/PurchaseItems',
       name: 'PurchaseItems',
       component: PurchaseItems,
+      beforeEnter: requireAuth,
     },
     // {
     //   path: '/logout',
@@ -44,12 +45,6 @@ export default new Router({
     //   component: Logout
     // },
   ],
-  getAuthStatus() {
-    if (localStorage.getItem('token')) {
-      return true;
-    }
-    return false;
-  },
   mode: 'history',
 });
 // const openRoutes = ['Login', 'Signup'];
