@@ -80,7 +80,7 @@
                       <br>
                       <br>
                       <Input
-                        prefix="ios-basket"
+                        prefix="logo-usd"
                         placeholder="Enter Price"
                         size="large"
                         v-on:keypress="isAnyNumber($event)"
@@ -451,9 +451,6 @@ export default {
       this.state = newState;
       this.newItem = '';
     },
-    // togglePurchased(item) {
-    //   this.item.purchased = !item.purchased;
-    // },
   },
 };
 </script>
