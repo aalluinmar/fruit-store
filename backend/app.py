@@ -62,7 +62,6 @@ def Login():
                 return jsonify({'result': "Invalid Password"})
             access_token = create_access_token(identity = post_data['email'])
             refresh_token = create_refresh_token(identity = post_data['email'])
-            print(access_token, refresh_token)
             return jsonify({
                 'message': '{0}'.format(post_data['email']),
                 'access_token': access_token,
@@ -129,6 +128,34 @@ def updateSellerFruit():
         d.query_insert( "DELETE from seller_fruits where sellerEmail='{sellerEmail}' and FruitName='{fruitName}'".format(**post_data))
         d.close_connection()
         return jsonify({'result': "fruit deleted"})
+
+#display all retailers to the Customer dashboard
+@jwt_required
+@app.route('/retailersFromDB', methods=['POST'])
+def retailersFromDB():
+    post_data = request.get_json()
+    usertype = post_data['usertype']
+    d = db.DB()
+    rows = d.get_rows("SELECT name, email from users where usertype='{usertype}'".format(**post_data))
+    if len(rows) == 0:
+        return jsonify({'result': "No Retailers found"})
+    else:
+        return jsonify({'retailersDB': rows, 'numberOfretailersFromDB': len(rows) })
+    d.close_connection()
+
+#fetching particular retailer fruits
+@jwt_required
+@app.route('/displayParticularRetailerFruits', methods=['POST'])
+def displayParticularRetailerFruits():
+    post_data = request.get_json()
+    retailerEmail = post_data['retailerEmail']
+    d = db.DB()
+    rows = d.get_rows("SELECT * from seller_fruits where sellerEmail='{retailerEmail}'".format(**post_data))
+    if len(rows) == 0:
+        return jsonify({'result': "No fruits found"})
+    else:
+        return jsonify({'particularRetailerFruits': rows, 'numberOfParticularRetailerFruitsFromDB': len(rows) })
+    d.close_connection()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
