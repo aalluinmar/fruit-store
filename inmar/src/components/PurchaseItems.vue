@@ -1,12 +1,14 @@
 <template>
   <div id="items-list">
-    <router-link to="/" style="float:right;color:white;">Logout</router-link>
+    <!-- <router-link to="/" style="float:right;color:white;">Logout</router-link> -->
+    <a style="float:right;font-size:135%;" @click="logout">Logout</a>
     <br>
     <h1 style="float:right">{{email}}</h1>
     <br>
     <br>
     <br>
     <!-- <h2>Total Price:{{ totalProducts}}</h2> -->
+
     <h1>Fruit Store Welcomes You!!</h1>
     <br>
     <button
@@ -125,7 +127,7 @@ export default {
   data() {
     return {
       state: "default",
-      email: "nikki@gmail.com",
+      email: "",
       usertype: "Seller",
       fruitState: "",
       quantity: 0,
@@ -145,6 +147,7 @@ export default {
     };
   },
   created() {
+    this.email = localStorage.getItem('user');
     this.displayallretailers();
   },
   computed: {
@@ -163,6 +166,8 @@ export default {
   reversedItems() {
     return this.products.slice(0);
   },
+
+
   methods: {
     isNumber($evt) {
       this.evt = evt || window.event;
@@ -192,12 +197,13 @@ export default {
             alert("NOT added to db");
           }
           else
-             alert(" added to db");
+             alert(" Thanks for Purchasing.........Have a nice day......Enjoy");
         })
         .catch(err => {
           console.log("neeraja");
         });
-
+      this.displayallretailers();
+      this.customerClickedItemsToStoreInDb = [];
       // console.log(this.customerClickedItemsToStoreInDb);
     },
     async get_fruits(retailername) {
@@ -267,7 +273,22 @@ export default {
           Cust_FruitEnteredQuantity = "";
         }
         console.log(this.customerClickedItemsToStoreInDb);
+      } else if(Cust_FruitEnteredQuantity ===0) {
+            console.log(Cust_FruitName, Cust_FruitQuantity, Cust_FruitPrice, Cust_FruitEnteredQuantity, Cust_ClickedSellerEmail);
+            for ( var i = 0; i < this.customerClickedItemsToStoreInDb.length; i++ ) {
+            if (
+                this.customerClickedItemsToStoreInDb[i].Cust_FruitName ===
+                Cust_FruitName &&
+                this.customerClickedItemsToStoreInDb[i]
+                .Cust_ClickedSellerEmail === Cust_ClickedSellerEmail
+            ) {
+            // this.customerClickedItemsToStoreInDb[i].Cust_FruitEnteredQuantity = Cust_FruitEnteredQuantity;
+                this.customerClickedItemsToStoreInDb.splice(i,1);
+                break;
+            }
+        }
       }
+
     },
     async displayallfruits(ind, retailername) {
       this.retailername = retailername.toString();
@@ -304,12 +325,24 @@ export default {
         });
       }
     },
+    logout() {
+        return new Promise(() => {
+        // context.commit('authLogout');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('status');
+        this.$router.push('/');
+        delete axios.defaults.headers.common.Authorization;
+        // resolve();
+        });
+    },
     changeState(newState) {
       this.state = newState;
     }
   }
 };
 </script>
+/* eslint-disable */
 <style scoped>
 * {
   margin: 0;
