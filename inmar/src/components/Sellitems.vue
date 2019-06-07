@@ -1,7 +1,8 @@
 <template>
   <div id="shopping-list">
     <h1 style="float:right">{{email}}</h1><br><br><br>
-    <router-link to="/" style="float:right">Logout</router-link>
+    <!-- <router-link to="/" style="float:right">Logout</router-link> -->
+    <a style="float:right;font-size:135%;" @click="logout">Logout</a>
     <br>
     <div class="header">
       <h1>{{ header.toLocaleUpperCase() }}</h1>
@@ -100,16 +101,20 @@
             >
             <button class="qty btn-primary" @click="updateprice(index,item.label)">Update</button>
           </div>
+
+          <br>
+          <li>
+            <button class="qty btn-primary" @click="deletefruit(index,item.label)">Delete this fruit</button>
+          </li>
         </div>
       </center>
     </ul>
-    <!-- <p v-if="items.length === 0">No Fruits in Your Account.</p> -->
+    <p v-if="items.length === 0">No Fruits in Your Account.</p>
   </div>
 </template>
 <script>
-import axios from "axios";
-// import router from '../router';
 /* eslint-disable */
+import axios from "axios";
 export default {
   data() {
     return {
@@ -117,7 +122,7 @@ export default {
       state1: "default1",
       state2: "default2",
       header: "Welcome to the Store",
-      email: "neeru@gmail.com",
+      email: "",
       usertype:"Seller",
       fruit: "",
       Fruit: "",
@@ -131,12 +136,9 @@ export default {
     };
   },
   created() {
-    // this.get_fruits()
+    this.email = localStorage.getItem('user');
   },
   computed: {
-    // characterCount(){
-    //     return this.newItem.length;
-    // },
     reversedItems() {
       return this.items.slice(0);
     }
@@ -153,9 +155,6 @@ export default {
           console.log(res.data.result);
           console.log(numberOfRows);
           this.rows = numberOfRows;
-          // this.items.push({
-          //   label: res.data.result.
-          // })
           this.items1 = res.data.result.fruitDetails;
           console.log(this.items1);
         })
@@ -166,12 +165,14 @@ export default {
     async displayfruits() {
       await this.get_fruits();
       this.items = [];
-      for (var i = 0; i < this.items1.length; i++) {
-        this.items.push({
-          label: this.items1[i][0],
-          label1: this.items1[i][1],
-          label2: this.items1[i][2]
-        });
+      if(this.rows){
+        for (var i = 0; i < this.items1.length; i++) {
+          this.items.push({
+            label: this.items1[i][0],
+            label1: this.items1[i][1],
+            label2: this.items1[i][2]
+          });
+        }
       }
       console.log(this.items1);
     },
@@ -195,22 +196,11 @@ export default {
              alert("fruit added succesfully");
           that.displayfruits()
           that.changeState("default")
-          
-          // this.email = "";
-          // this.usertype = "";
-          // this.fruit = "";
-          // this.quantity = "";
-          // this.price = "";
-          // this.state = "default";
         })
         .catch(err => {
           console.log("error");
         });
-        // this.displayfruits();
     },
-    // updateQuantity(index, Quan, fruitName){
-       
-    // },
     update(ind, lab) {
       const temp = this.quan;
       this.lab = lab.toString();
@@ -263,8 +253,27 @@ export default {
       this.fruit = "";
       this.quantity = null;
       this.price = null;
-      // this.state = "default";
     },
+
+
+    async deletefruit(ind, lab) {
+      this.lab = lab.toString();
+      if (this.items[ind].label === lab) {
+            await axios
+              .post(process.env.API_URL+"/deletingfruit",{
+                fruit: this.lab,
+              })
+              .then(res => {
+                return true;
+              })
+              .catch(err => {
+                console.log("error");
+              });
+            this.displayfruits();
+            this.changeState("default")
+      }
+    },
+
     isNumber(evt) {
       this.evt = evt || window.event;
       const charCode = evt.which ? evt.which : evt.keyCode;
@@ -293,6 +302,18 @@ export default {
       this.quantity ="";
       this.price ="";
     },
+    logout() {
+        return new Promise(() => {
+        // context.commit('authLogout');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('status');
+        this.$router.push('/');
+        delete axios.defaults.headers.common.Authorization;
+        // resolve();
+        });
+    },
+
     togglePurchased(item) {
       this.item.purchased = !item.purchased;
     }
@@ -390,7 +411,6 @@ li input {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.12), 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   width: 92%;
   height: 85%;
-  /*max-width: 900px;*/
 }
 #added-fruits {
   background: #fff;
@@ -400,7 +420,6 @@ li input {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.12), 0 2px 4px 0 rgba(0, 0, 0, 0.08);
   width: 45%;
   height: 35%;
-  /*max-width: 900px;*/
 }
 .add-item-form,
 .header {
