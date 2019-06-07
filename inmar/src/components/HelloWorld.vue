@@ -24,11 +24,6 @@
           <form id="app" v-on:submit.prevent="register" 
           action method="POST" novalidate="true">
             <div class="form-group">
-              <!-- <h5 v-if="errors.length" >
-                      <p >
-                        <h5 v-for="error in errors" style="color: red">{{ error }}</h5>
-                      </p>
-              </h5>-->
             </div>
             <div class="form-group">
               <label for="name">
@@ -58,7 +53,6 @@
                 <sup>*</sup>
               </label>
               <br>
-              <!-- <input type="text" name="usertype" id="usertype" v-model="usertype"> -->
               <select v-model="usertype">
                 <option value=""></option>
                 <option value="Seller" >Seller</option>
@@ -81,22 +75,14 @@
               <br>
             </div>
              <button type="submit" class="btn btn-cancel">Submit</button>
-            <!-- <input type="submit" value="Submit"> -->
           </form>
         </center>
       </div>
-
-
       <div v-if="state === 'rlogin'">
         <center>
           <div class="add-item-form1">
             <form id="app" v-on:submit.prevent="rlogin" action method="post" novalidate="true">
               <div class="form-group">
-                <!-- <h5 v-if="errors1.length" >
-                    <p>
-                        <h5 v-for="error in errors1" style="color: red">{{ error }}</h5>
-                    </p>
-                </h5>-->
               </div>
               <div class="form-group">
                 <label for="email">
@@ -143,12 +129,6 @@
           </div>
         </center>
       </div>
-
-     
-      
-      
-
-   
       <p v-if="state === 'default'">WELCOME TO FRUIT STORE</p>
       <p v-if="state === 'default'" class="fruitmatter">
         Fruit has been recognized as a good source of vitamins and
@@ -168,11 +148,11 @@
     </div>
   </div>
 </template>
-
 <script>
+/* eslint-disable */
 import axios from 'axios';
 import router from '../router';
-/* eslint-disable */
+// eslint-disable 
 export default {
   data() {
     return {
@@ -180,8 +160,6 @@ export default {
       header: "Fruit Store",
       newItem: "",
       errors: {},
-      // emailloginverify:true,
-      // passloginverify:true,
       errors1: {},
       name: null,
       usertype: null,
@@ -190,6 +168,18 @@ export default {
       items: []
     };
   },
+  created() {
+// router.requireAuth;
+// this.beforeEach = router.requireAuth;
+      if(localStorage.getItem('status') === "SellerLoggedIn"){
+      this.$router.push('/Sellitems');
+      } else if(localStorage.getItem('status') === "CustomerLoggedIn"){
+      this.$router.push('/PurchaseItems');
+      } else {
+      this.$router.push('/');
+      }
+  },
+
   methods: {
     register() {
       if(this.checkForm()) {
@@ -248,11 +238,27 @@ export default {
             this.state='default';
           }
           else{
-            if(this.usertype==='Seller')
-              router.push({ name: "Sellitems" , params:{ id:res.data.result.email}});
-            else
-              router.push({ name: "PurchaseItems" , params:{ id:res.data.result.email}});
-
+            if(!localStorage.getItem('status')){
+                  let accessToken = res.data.access_token;
+                  localStorage.setItem('token', accessToken);
+                  axios.defaults.headers.common['Authorization'] = "Bearer " + accessToken;
+                  localStorage.setItem('user', res.data.message);
+                  if (res.data.usertype === "Seller") {
+                    localStorage.setItem('status', "SellerLoggedIn");
+                    router.push({
+                    name: "Sellitems",
+                    params: { id: res.data.usertype }
+                    });
+                  } else {
+                    localStorage.setItem('status', "CustomerLoggedIn");
+                    router.push({
+                    name: "PurchaseItems",
+                    params: { id: res.data.usertype }
+                    });
+                  }
+            } else {
+                alert(localStorage.getItem('user')+" has logged in");
+            }
           }
         })
         .catch(err => {
@@ -265,9 +271,6 @@ export default {
       this.state = newState;
       this.newItem = "";
     },
-    // loginbutton: function(){
-    //   this.$router.push('/Demo');
-    // },
     checkForm(e) {
       this.errors = {};
       if(!this.usertype){
@@ -285,10 +288,8 @@ export default {
         this.errors.password = "Valid Password required.";
       }
       if (!Object.keys(this.errors).length) {
-        // this.$router.push("/Sellitems");
         return true;
       }
-      // e.preventDefault();
       return false;
     },
     
@@ -299,26 +300,17 @@ export default {
       }
       if (!this.email) {
         this.errors1.email = "Email required.";
-        // emailloginverify:false;
       } else if (!this.validEmail(this.email)) {
         this.errors1.email = "Valid email required.";
-        // emailloginverify:false;
       }
       if (!this.password) {
         this.errors1.password = "Password required.";
-        // passloginverify:false;
       } else if (!this.validPassword(this.password)) {
         this.errors1.password = "Valid Password required.";
-        // passloginverify:false;
       }
       if (!Object.keys(this.errors1).length) {
-        // this.$router.push("/PurchaseItems");
         return true;
       }
-      // e.preventDefault();
-      // // if(this.emailloginverify == this.passloginverify){
-
-      // }
       return false;
     },
     validEmail(email) {
