@@ -1,14 +1,18 @@
 import db
 import security
+import validateDataFromServer
 from flask import Flask
 from mysql.connector import (connection)
 from flaskext.mysql import MySQL
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 from passlib.hash import pbkdf2_sha256
 app = Flask(__name__)
+app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
+jwt = JWTManager(app)
 CORS(app)
-
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -18,26 +22,30 @@ def register():
     usertype = payload['usertype']
     password = payload['password']
     password = security.encrypt_password(password)
-    db.cursor.execute(
-        "SELECT email from users where email='" + str(email) + "' and usertype='"+str(usertype)+"' ")
-    rows = db.cursor.fetchall()
-    print(len(rows))
-    if len(rows) > 0:
-        return jsonify({'result': 0})
-    else:
+    valid = validateDataFromServer.validationDB(name, email, usertype, payload['password'])
+    if valid:
         db.cursor.execute(
-            "INSERT INTO users (name, email, usertype, password) VALUES ('"
-            + str(name) + "','" + str(email) +
-            "','" + str(usertype) +
-            "','" + str(password) + "')")
-        db.cnx.commit()
-        result = {
-            'name': name,
-            'email': email,
-            'usertype': usertype,
-            'password': password
-        }
-        return jsonify({'result': result})
+            "SELECT email from users where email='" + str(email) + "' and usertype='"+str(usertype)+"' ")
+        rows = db.cursor.fetchall()
+        print(len(rows))
+        if len(rows) > 0:
+            return jsonify({'result': 0})
+        else:
+            db.cursor.execute(
+                "INSERT INTO users (name, email, usertype, password) VALUES ('"
+                + str(name) + "','" + str(email) +
+                "','" + str(usertype) +
+                "','" + str(password) + "')")
+            db.cnx.commit()
+            result = {
+                'name': name,
+                'email': email,
+                'usertype': usertype,
+                'password': password
+            }
+            return jsonify({'result': result})
+    else:
+        return jsonify({"result": "Failed"})
 
 
 @app.route('/rlogin', methods=['POST'])
@@ -46,24 +54,31 @@ def rlogin():
     email = payload['email']
     usertype = payload['usertype']
     password = payload['password']
-    db.cursor.execute("select password from users where email ='" +
+    valid = validateDataFromServer.validationforLogin(email, usertype, payload['password'])
+    if valid:
+        db.cursor.execute("select password from users where email ='" +
                       str(email) + "' and usertype ='" + str(usertype) + "' ")
-    dbpass = db.cursor.fetchall()
-    if dbpass:
-        dbpass = ''.join(dbpass[0])
-        pwd = security.check_encrypted_password(password, dbpass)
-        if pwd:
-            db.cnx.commit()
-            result = {
-                'email': email,
-                'usertype': usertype,
-                'password': password
-            }
-            return jsonify({'result': result})
+        dbpass = db.cursor.fetchall()
+        if dbpass:
+            dbpass = ''.join(dbpass[0])
+            pwd = security.check_encrypted_password(password, dbpass)
+            if pwd:
+                db.cnx.commit()
+                access_token = create_access_token(identity = payload['email'])
+                refresh_token = create_refresh_token(identity = payload['email'])
+                return jsonify({
+                    'message': payload['email'],
+                    'access_token': access_token,
+                    'refresh_token': refresh_token,
+                    'usertype': payload['usertype']
+                })
+            else:
+                return jsonify({'result': "INVALID PASSWORD"})
         else:
-            return jsonify({'result': "INVALID PASSWORD"})
+            return jsonify({'result': "INVALID EMAIL OR USERTYPE"})
     else:
-        return jsonify({'result': "INVALID EMAIL OR USERTYPE"})
+        return jsonify({"result": "Failed"})
+
 
 
 @app.route('/adding', methods=['POST'])
@@ -147,6 +162,19 @@ def updatingPrice():
     return jsonify({'result': result})
 
 
+@app.route('/deletingfruit', methods=['POST'])
+def deletingfruit():
+    payload = request.get_json()
+    fruit = payload['fruit']
+    db.cursor.execute(
+        "DELETE FROM fruits_table WHERE fruit='" + str(fruit) + "' ")
+    db.cnx.commit()
+    result = {
+        'fruitName': fruit
+    }
+    return jsonify({'result': result})
+
+
 @app.route('/fetchingallfruits', methods=['POST'])
 def fetchingallfruits():
     payload = request.get_json()
@@ -192,51 +220,31 @@ def fetchingallretailers():
 @app.route('/storingshoppingdetails', methods=['POST'])
 def storingshoppingdetails():
     payload = request.get_json()
-    # payload = request.get_json()
-    # email = payload['email']
-    # print(len(payload))
     CustomerEmail = payload['customerEmail']
-    for temp in payload['customerClickedDetails']:    
+    for temp in payload['customerClickedDetails']:
         Cust_FruitName = temp['Cust_FruitName']
         Cust_FruitQuantity = temp['Cust_FruitQuantity']
         Cust_FruitPrice = temp['Cust_FruitPrice']
         Cust_FruitEnteredQuantity = temp['Cust_FruitEnteredQuantity']
         Cust_ClickedSellerEmail = temp['Cust_ClickedSellerEmail']
-        CustomerItemCostForParticularItem = (Cust_FruitPrice * Cust_FruitEnteredQuantity)
+        CustomerItemCostForParticularItem = (
+            Cust_FruitPrice * Cust_FruitEnteredQuantity)
         db.cursor.execute(
             "INSERT INTO customer_purchase_table (CustomerEmail, Cust_FruitName, Cust_FruitQuantity, Cust_FruitPrice, Cust_FruitEnteredQuantity, Cust_ClickedSellerEmail, CustomerItemCostForParticularItem ) VALUES ('"+str(CustomerEmail)+"','"+str(Cust_FruitName)+"','"+str(Cust_FruitQuantity)+"','"+str(Cust_FruitPrice)+"','" + str(Cust_FruitEnteredQuantity)+"','"+str(Cust_ClickedSellerEmail)+"','"+str(CustomerItemCostForParticularItem)+"')")
         # print(cursor)
-    db.cnx.commit()
+        updQuantitytoDB = Cust_FruitQuantity - Cust_FruitEnteredQuantity
+        db.cursor.execute(
+            "UPDATE fruits_table set quantity='" + str(updQuantitytoDB) + " ' where fruit='" + str(Cust_FruitName) + "' and email ='" + str(Cust_ClickedSellerEmail) + "' ")
+        db.cnx.commit()
     result = {
-            'Cust_FruitName': Cust_FruitName,
-            'Cust_FruitQuantity': Cust_FruitQuantity,
-            'Cust_FruitPrice': Cust_FruitPrice,
-            'Cust_FruitEnteredQuantity': Cust_FruitEnteredQuantity,
-            'Cust_ClickedSellerEmail': Cust_ClickedSellerEmail
-        }
+        'Cust_FruitName': Cust_FruitName,
+        'Cust_FruitQuantity': Cust_FruitQuantity,
+        'Cust_FruitPrice': Cust_FruitPrice,
+        'Cust_FruitEnteredQuantity': Cust_FruitEnteredQuantity,
+        'Cust_ClickedSellerEmail': Cust_ClickedSellerEmail
+    }
     return jsonify({'result': result})
 
-
-# @app.route('/storingshoppingdetails', methods=['POST'])
-# def storingshoppingdetails():
-#     payload = request.get_json()
-#     # email = payload['email']
-#     Cust_FruitName = payload['Cust_FruitName']
-#     Cust_FruitQuantity = payload['Cust_FruitQuantity']
-#     Cust_FruitPrice = payload['Cust_FruitPrice']
-#     Cust_FruitEnteredQuantity = payload['Cust_FruitEnteredQuantity']
-#     Cust_ClickedSellerEmail = payload['Cust_ClickedSellerEmail']
-#     db.cursor.execute(
-#         "INSERT INTO customer_purchase_table (Cust_FruitName, Cust_FruitQuantity, Cust_FruitPrice, Cust_FruitEnteredQuantity, Cust_ClickedSellerEmail ) VALUES ('"+str(Cust_FruitName)+"','"+str(Cust_FruitQuantity)+"','"+str(Cust_FruitPrice)+"','" + str(Cust_FruitEnteredQuantity)+"','"+str(Cust_ClickedSellerEmail)+"')")
-#     db.cnx.commit()
-#     result = {
-#         'Cust_FruitName': Cust_FruitName,
-#         'Cust_FruitQuantity': Cust_FruitQuantity,
-#         'Cust_FruitPrice': Cust_FruitPrice,
-#         'Cust_FruitEnteredQuantity': Cust_FruitEnteredQuantity,
-#         'Cust_ClickedSellerEmail': Cust_ClickedSellerEmail
-#     }
     
-#     return jsonify({'result': result})
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000,)
