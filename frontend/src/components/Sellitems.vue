@@ -25,7 +25,7 @@
               <a @click.prevent="addFruits = true">Add Items</a>
             </li>
             <li>
-              <a>Transactions</a>
+              <a @click="transactionOfRetailer =  true">Transactions</a>
             </li>
             <li>
               <a style="float:right;font-size:135%;" @click="logout">Logout</a>
@@ -239,6 +239,65 @@
       center;color:#e25f13;"
       >Oops!! No Fruits in Your Account.</h3>
     </center>
+    <div v-if="transactionOfRetailer">
+      <center>
+      <transition name="modal">
+        <div class="modal-mask">
+          <div class="modal-wrapper">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h2 class="modal-title">
+                  <button type="button" class="close" @click="transactionOfRetailer=false">
+                    <!-- <span aria-hidden="true">&times;</span> -->
+                    <Icon type="md-close" />
+                  </button>
+                    <center>Transaction History</center>
+                  </h2>
+                </div>
+                <div class="modal-body">
+                  <div>
+                    <center>
+                      <h3 v-if="transRows <= 0">No Transactions Upto now</h3>
+                      <h3 v-else>History</h3>
+                        <h5 v-for="(showTransaction,index) in showTransactions"
+                          :key="index">
+                              <Card style="width:400px">
+                                <h4 slot="title">Transaction ID:
+                                  #{{ showTransaction.transactionID }}</h4> <br>
+                                <p style="float:left;">Transaction Date:
+                                  {{ showTransaction.TransDate }}</p>
+                                <p style="float:right;">Time:
+                                  {{ showTransaction.TransTime }}</p><br><br>
+                                <Card>
+                                  <p>Customer:
+                                  {{ showTransaction.RetailerEmail }}</p>
+                                  <p style="float:left;">Fruit :
+                                    {{showTransaction.fruitName}}</p>
+                                  <p style="float:right;">Quantity:
+                                    {{ showTransaction.Quantity }}</p><br>
+                                  <p style="float:left;">Purchased Quantity:
+                                    {{ showTransaction.purchasedQuantity }}</p>
+                                  <p style="float:right;">Price:
+                                    {{ showTransaction.price }}</p><br><br>
+                                  <p style="float:right;">Total Price:
+                                    {{ showTransaction.totalPrice }}</p><br>
+                                </Card>
+                              </Card> <br>
+                        </h5>
+                        <ButtonGroup size="large">
+                          <Button type="primary" @click="transactionOfRetailer=false">Close</Button>
+                        </ButtonGroup>
+                    </center>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+      </center>
+    </div>
     <footer class="container-fluid text-center" id="footer">
       <br>
       <center id="footer_text">© Copyright Agency 2019.</center>
@@ -260,6 +319,8 @@ export default {
       header: "Welcome to the Store",
       UpdateQuantityBoolean: false,
       UpdatePriceBoolean: false,
+      transactionOfRetailer: false,
+      transRows: 0,
       FruitIndex: null,
       newItem: "",
       showName: "",
@@ -268,6 +329,7 @@ export default {
       DisplayFruit: '',
       newItem2: null,
       items: [],
+      showTransactions: [],
       addFruits: false,
       fixed: ""
     };
@@ -275,6 +337,7 @@ export default {
   created() {
     this.showName = localStorage.getItem("user");
     this.showAllFruits();
+    this.transactionHistory();
   },
   computed: {
     // characterCount(){
@@ -407,6 +470,40 @@ export default {
         this.UpdatePriceBoolean = false;
       }
     },
+    async transactionHistory() {
+        await axios
+        .post(process.env.API_URL + "/transactionHistoryRetailer", {
+          sellerEmail: this.showName,
+        })
+        .then(res => {
+          if(res.data.transactionRows){
+            this.transRows = res.data.transactionRows;
+            for(var i = 0; i < res.data.transactionRows; i++){
+              this.dateTIME = res.data.transactionHistory[i][8];
+              this.TransDate = this.dateTIME.substring(0,10).toString().split("-").reverse().join("-");
+              this.TransTime = this.dateTIME.substring(11,19);
+              this.showTransactions.push({
+                RetailerEmail: res.data.transactionHistory[i][1],
+                fruitName: res.data.transactionHistory[i][2],
+                Quantity: res.data.transactionHistory[i][3],
+                purchasedQuantity: res.data.transactionHistory[i][4],
+                price: res.data.transactionHistory[i][5],
+                totalPrice: res.data.transactionHistory[i][6],
+                transactionID: res.data.transactionHistory[i][7].substring(0,14),
+                TransDate: this.TransDate,
+                TransTime: this.TransTime
+              })
+            }
+            // console.log(this.showTransactions);
+          }
+          else {
+            this.$Message.error("No Transactions Found");
+          }
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
     logout() {
       return new Promise(() => {
         // context.commit('authLogout');
@@ -493,6 +590,9 @@ body {
   justify-content: center;
   margin: 0;
   padding: 0;
+}
+table {
+  width: 80%;
 }
 #update,
 #updateprice {
@@ -622,18 +722,45 @@ li input {
 .strikeout:hover {
   color: #8795a1;
 }
+.modal-body {
+  position: relative;
+  padding: 30px 15px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+.modal-header{
+  width: 100%;
+  height: 100%;
+}
 .modal-mask {
   position: fixed;
   z-index: 9998;
   top: 0;
   left: 0;
+  text-align: center;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   display: table;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.5s ease;
 }
-
+.modal {
+  text-align: center;
+  /* overflow: hidden; */
+  padding: 0!important;
+}
+.modal:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  margin-right: -4px;
+}
+.modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle;
+}
 .modal-wrapper {
   display: table-cell;
   vertical-align: middle;
