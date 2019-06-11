@@ -7,6 +7,7 @@ from flask import render_template
 from flaskext.mysql import MySQL
 from mysql.connector import (connection)
 from passlib.hash import pbkdf2_sha256
+from datetime import datetime
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
 import db
@@ -155,6 +156,126 @@ def displayParticularRetailerFruits():
         return jsonify({'result': "No fruits found"})
     else:
         return jsonify({'particularRetailerFruits': rows, 'numberOfParticularRetailerFruitsFromDB': len(rows) })
+    d.close_connection()
+
+#deleted Customer particular fruit from cart
+#delete Customer particular fruit from cart
+@jwt_required
+@app.route('/deleteParticularFruitFromCart', methods=['POST'])
+def deleteParticularFruitFromCart():
+    post_data = request.get_json()
+    print(post_data)
+    retailerEmail = post_data['retailerEmail']
+    customerEmail = post_data['customerEmail']
+    fruitName = post_data['fruitName']
+    d = db.DB()
+    d.query_insert("DELETE FROM customercartitems where retailerEmail='{retailerEmail}' and (customerEmail='{customerEmail}' and custFruitName='{fruitName}')".format(**post_data))
+    return jsonify({'particularCustomerCart': 1 })
+    d.close_connection()
+
+
+#Customer Cart Items
+@jwt_required
+@app.route('/addItemsTocart', methods=['POST'])
+def addItemsTocart():
+    post_data = request.get_json()
+    print(post_data)
+    customerEmail = post_data['customerEmail']
+    retailerEmail = post_data['retailerEmail']
+    custFruitName = post_data['custFruitName']
+    custQuantity = post_data['custQuantity']
+    custPrice = post_data['custPrice']
+    custEnteredQuantity = post_data['custEnteredQuantity']
+    d = db.DB()
+    if custEnteredQuantity == 0:
+        print("1")
+        d.query_insert( "DELETE from customerCartItems where retailerEmail='{retailerEmail}' and custFruitName = '{custFruitName}'".format(**post_data))
+        return jsonify({'itemscartDB': post_data, 'numberOfItemsFromCartDBdeleted': 0})
+    rows = d.get_rows("SELECT * from customerCartItems where retailerEmail='{retailerEmail}' and custFruitName = '{custFruitName}'".format(**post_data))
+    if len(rows) > 0:
+        print("2")
+        d.query_insert( "UPDATE customerCartItems set custEnteredQuantity = '{custEnteredQuantity}' where retailerEmail='{retailerEmail}' and custFruitName='{custFruitName}'".format(**post_data))
+        return jsonify({'itemscartDB': post_data, 'numberOfItemsFromCartDB': 1})
+    else:
+        print("3")
+        d.query_insert( "INSERT INTO customerCartItems (retailerEmail, customerEmail, custFruitName, custQuantity, custPrice, custEnteredQuantity) VALUES \
+            ('{retailerEmail}', '{customerEmail}','{custFruitName}', '{custQuantity}', '{custPrice}', '{custEnteredQuantity}' )".format(**post_data))
+        return jsonify({'itemscartDB': post_data, 'numberOfItemsFromCartDB': 1 })
+    d.close_connection()
+
+
+#customer purchased fruits from each retailer
+@jwt_required
+@app.route('/customerTransaction', methods=['POST'])
+def customerTransaction():
+    post_data = request.get_json()
+    customerEmail = post_data['customerEmail']
+    d = db.DB()
+    transId = str(datetime.now())
+    DateAndTime = str(datetime.now())
+    newtransId = transId.replace(" ","")
+    newtransId = newtransId.replace(".","")
+    newtransId = newtransId.replace(":","")
+    newtransId = newtransId.replace("-","")
+    newtransId = newtransId[0:14]
+    for payload in post_data['customerClickedItemsToStoreInDb']:
+        print(payload)
+        totalPrice = payload['Cust_FruitPrice'] * payload['Cust_FruitEnteredQuantity']
+        sellerEmail = payload['Cust_ClickedSellerEmail']
+        fruitName = payload['Cust_FruitName']
+        quantity = payload['Cust_FruitQuantity']
+        purchasedQuantity = payload['Cust_FruitEnteredQuantity']
+        price = payload['Cust_FruitPrice']
+        d.query_insert( "INSERT INTO customertransaction (sellerEmail, customerEmail, FruitName, Quantity, purchasedQuantity, Price, totalPrice, transactionID, DateAndTime) VALUES \
+            ('"+str(sellerEmail)+"', '"+str(customerEmail)+"', '"+str(fruitName)+"', '"+str(quantity)+"', '"+str(purchasedQuantity)+"', '"+str(price)+"', '"+str(totalPrice)+"', '"+str(newtransId)+"', '"+str(DateAndTime)+"' )")
+        QuantUpdateSeller = quantity - purchasedQuantity
+        print("success")
+        d.query_insert(" UPDATE seller_fruits set Quantity='"+str(QuantUpdateSeller)+"' where sellerEmail='"+str(sellerEmail)+"' and FruitName='"+str(fruitName)+"' ")            
+    d.query_insert( "DELETE from customerCartItems where customerEmail='{customerEmail}' ".format(**post_data))
+    d.close_connection()    
+    return jsonify({'result': post_data })
+
+#customer cart details fetching
+@jwt_required
+@app.route('/customerCartDetails', methods=['POST'])
+def customerCartDetails():
+    post_data = request.get_json()
+    customerEmail = post_data['customerEmail']
+    d = db.DB()
+    rows = d.get_rows("SELECT * from customerCartItems where customerEmail='{customerEmail}'".format(**post_data))
+    if len(rows) == 0:
+        return jsonify({'result': "No Items in Cart", 'cartRows': len(rows)})
+    else:
+        return jsonify({'cartItemsFromDB': rows, 'cartRows': len(rows) })
+    d.close_connection()
+
+
+#fetching transaction details of customer
+@jwt_required
+@app.route('/transactionHistory', methods=['POST'])
+def transactionHistory():
+    post_data = request.get_json()
+    customerEmail = post_data['customerEmail']
+    d = db.DB()
+    rows = d.get_rows("SELECT * from customertransaction where customerEmail='{customerEmail}'".format(**post_data))
+    if len(rows) == 0:
+        return jsonify({'result': "No Transactions found upto date", 'transactionRows': len(rows)})
+    else:
+        return jsonify({'transactionHistory': rows, 'transactionRows': len(rows) })
+    d.close_connection()
+
+#fetching transaction details of retailer
+@jwt_required
+@app.route('/transactionHistoryRetailer', methods=['POST'])
+def transactionHistoryRetailer():
+    post_data = request.get_json()
+    sellerEmail = post_data['sellerEmail']
+    d = db.DB()
+    rows = d.get_rows("SELECT * from customertransaction where sellerEmail='{sellerEmail}'".format(**post_data))
+    if len(rows) == 0:
+        return jsonify({'result': "No Transactions found upto date", 'transactionRows': len(rows)})
+    else:
+        return jsonify({'transactionHistory': rows, 'transactionRows': len(rows) })
     d.close_connection()
 
 if __name__ == '__main__':
