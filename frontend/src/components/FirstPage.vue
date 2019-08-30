@@ -18,13 +18,13 @@
         <div class="collapse navbar-collapse" id="myNavbar">
           <ul class="nav navbar-nav">
             <li>
-              <a href="/">Home</a>
+              <a href="/" class="home">Home</a>
             </li>
             <li>
-              <a href="#about">About</a>
+              <a href="#about" class="about">About</a>
             </li>
             <li>
-              <a href="#info">Contact</a>
+              <a href="#info" class="info">Contact</a>
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
@@ -38,7 +38,7 @@
             <li>
               <a
                 class="glyphicon glyphicon-log-in"
-                id="show-modal"
+                id="show-modal-Login"
                 @click="showModalLogin = true"
               >Login</a>
             </li>
@@ -76,9 +76,10 @@
                               novalidate="true"
                             >
                               <div class="form-group">
-                                <RadioGroup v-model="usertype" type="button" size="large">
-                                    <Radio label="Retailer">Retailer</Radio>
-                                    <Radio label="Customer">Customer</Radio>
+                                <RadioGroup v-model="usertype" id="usertype"
+                                type="button" size="large">
+                                    <Radio id="retailer_radio" label="Retailer">Retailer</Radio>
+                                    <Radio id="customer_radio" label="Customer">Customer</Radio>
                                 </RadioGroup>
                                 <br>
                                 <span v-if="errors" id="alert">{{errors.usertype}}</span>
@@ -91,9 +92,10 @@
                                 </label>
                                 <br>
                                 <Input prefix="ios-contact" placeholder="Enter name" size="large"
-                                v-model="name" style="width: auto" />
+                                type="text"
+                                v-model="name" id="RegisterName" style="width: auto" />
                                 <br>
-                                <span v-if="errors" id="alert">{{errors.name}}</span>
+                                <span v-if="errors" id="alert1">{{errors.name}}</span>
                                 <br>
                               </div>
                               <div class="form-group">
@@ -103,9 +105,10 @@
                                 </label>
                                 <br>
                                 <Input prefix="ios-mail" placeholder="Enter Email" size="large"
-                                v-model="email" style="width: auto" />
+                                type="email"
+                                v-model="email" id="RegisterEmail" style="width: auto" />
                                 <br>
-                                <span v-if="errors" id="alert">{{errors.email}}</span>
+                                <span v-if="errors" id="alert2">{{errors.email}}</span>
                                 <br>
                               </div>
                               <div class="form-group">
@@ -117,12 +120,13 @@
                                 <br>
                                 <Input prefix="ios-lock" type="password"
                                 placeholder="Enter Password" size="large"
-                                v-model="password" style="width: auto" />
+                                v-model="password" id="RegisterPass" style="width: auto" />
                                 <br>
-                                <span v-if="errors" id="alert">{{errors.password}}</span>
+                                <span v-if="errors" id="alert3">{{errors.password}}</span>
                                 <br>
                               </div>
-                              <button type="submit" class="btn btn-cancel">Register</button>
+                              <button type="submit" id="registerSubmit"
+                              class="btn btn-cancel">Register</button>
                             </form>
                           </center>
                         </div>
@@ -143,7 +147,7 @@
                         <button type="button" class="close" @click="showModalLogin=false">
                           <span aria-hidden="true">&times;</span>
                         </button>
-                        <h4 class="modal-title"><center>Login</center></h4>
+                        <h4 class="modal-title" id="modal-title"><center>Login</center></h4>
                       </div>
                       <div class="modal-body">
                         <center>
@@ -156,12 +160,15 @@
                               novalidate="true"
                             >
                               <div class="form-group">
-                                <RadioGroup v-model="usertype" type="button" size="large">
-                                    <Radio label="Retailer">Retailer</Radio>
-                                    <Radio label="Customer">Customer</Radio>
+                                <RadioGroup v-model="usertype" id="usertypeLogin"
+                                type="button" size="large">
+                                    <Radio id="retailer_radio_login"
+                                    label="Retailer">Retailer</Radio>
+                                    <Radio id="customer_radio_login"
+                                    label="Customer">Customer</Radio>
                                 </RadioGroup>
                                 <br>
-                                <span v-if="errors1" id="alert">{{errors1.usertype}}</span>
+                                <span v-if="errors1" id="alert4">{{errors1.usertype}}</span>
                                 <br>
                               </div>
                               <div class="form-group">
@@ -173,9 +180,10 @@
                                 <!-- <input type="email" name="email" id="email"
                                 v-model="email"> -->
                                 <Input prefix="ios-mail" placeholder="Enter Email" size="large"
+                                id="emailLogin"
                                 v-model="email" style="width: auto" />
                                 <br>
-                                <span v-if="errors1" id="alert">{{errors1.email}}</span>
+                                <span v-if="errors1" id="alert5">{{errors1.email}}</span>
                                 <br>
                               </div>
                               <div class="form-group">
@@ -184,15 +192,16 @@
                                   <sup>*</sup>
                                 </label>
                                 <br>
-                                <Input prefix="ios-lock" type="password"
+                                <Input prefix="ios-lock" type="password" id="passLogin"
                                 placeholder="Enter Password" size="large"
                                 v-model="password" style="width: auto" />
                                 <br>
-                                <span v-if="errors1" id="alert">{{errors1.password}}</span>
+                                <span v-if="errors1" id="alert6">{{errors1.password}}</span>
                                 <br>
                               </div>
                               <!-- <input type="submit" value="Submit"> -->
-                              <button type="submit" class="btn btn-cancel">Submit</button>
+                              <button type="submit" id="loginSubmit"
+                              class="btn btn-cancel">Login</button>
                             </form>
                           </div>
                         </center>
@@ -203,8 +212,6 @@
               </div>
             </transition>
           </div>
-
-          <!-- <button id="show-modal" @click="showModal = true">Show Modal</button> -->
         </div>
       </div>
     </div> <br>
@@ -218,7 +225,7 @@
                 <img src="@/assets/images/1st.jpg" alt="Image">
                 <div class="carousel-caption">
                   <center data-target="#myCarousel" data-slide-to="0">
-                    <h3>A Healthy outside starts from the inside</h3>
+                    <h3 id="carousel_text-1">A Healthy outside starts from the inside</h3>
                   </center>
                 </div>
               </div>
@@ -227,7 +234,7 @@
                 <img src="@/assets/images/2nd.jpg" alt="Image">
                 <div class="carousel-caption">
                   <center data-target="#myCarousel" data-slide-to="1">
-                    <h3>You are What you eat</h3>
+                    <h3 id="carousel_text-2">You are What you eat</h3>
                   </center>
                 </div>
               </div>
@@ -235,7 +242,7 @@
                 <img src="@/assets/images/3rd.jpg" alt="Image">
                 <div class="carousel-caption">
                   <center data-target="#myCarousel" data-slide-to="2">
-                    <h3>Food is Fuel not Therapy</h3>
+                    <h3 id="carousel_text-3">Food is Fuel not Therapy</h3>
                   </center>
                 </div>
               </div>
@@ -243,7 +250,7 @@
                 <img src="@/assets/images/4th.jpg" alt="Image">
                 <div class="carousel-caption">
                   <center data-target="#myCarousel" data-slide-to="3">
-                    <h3>Don't eat less eat right</h3>
+                    <h3 id="carousel_text-4">Don't eat less eat right</h3>
                   </center>
                 </div>
               </div>
@@ -251,7 +258,7 @@
                 <img src="@/assets/images/5th.jpg" alt="Image">
                 <div class="carousel-caption">
                   <center data-target="#myCarousel" data-slide-to="4">
-                    <h3>Healthy Food Healthy Life</h3>
+                    <h3 id="carousel_text-5">Healthy Food Healthy Life</h3>
                   </center>
                 </div>
               </div>
@@ -264,26 +271,15 @@
             </p>
             <p class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
               <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-              <span class="sr-only">Next</span>
+              <span class="sr-only" id="next_carousel">Next</span>
             </p>
           </div>
         </div>
-        <!-- <div class="col-sm-4">
-        <div class="well">
-          <p>Some text..</p>
-        </div>
-        <div class="well">
-          <p>Upcoming Events..</p>
-        </div>
-        <div class="well">
-          <p>Visit Our Blog</p>
-        </div>
-        </div>-->
       </div>
     </div>
 
     <div class="container text-center"><br> <br> <br>
-      <h3>Use Of Fruits</h3>
+      <h3 id="Use_Of_Fruits">Use Of Fruits</h3>
       <br>
       <div class="row">
         <div class="col-sm-3">
@@ -295,7 +291,7 @@
             height="50%"
             alt="Image"
           >
-          <p>Best Protien Fruit</p>
+          <p id="Best_Protien_Fruit">Best Protien Fruit</p>
         </div>
         <div class="col-sm-3">
           <img
@@ -305,33 +301,33 @@
             height="50%"
             alt="Image"
           >
-          <p>Protect against Cancer</p>
+          <p id="Protect_against_Cancer">Protect against Cancer</p>
         </div>
         <div class="col-sm-3">
           <div class="well">
-            <p id="text_">
-              Fruit has been recognized as a good source of vitamins and
-              minerals, and for their role in preventing vitamin C and vitamin A deficiencies.
+            <p id="text_1">
+              Fruit has been recognized as a good source of vitamins and minerals,
+              and for their role in preventing vitamin C and vitamin A deficiencies.
             </p>
           </div>
           <div class="well">
-            <p id="text_">
-              USDA's MyPlate encourages making half your plate fruits
-              and vegetables for healthy eating.
+            <p id="text_2">
+              USDA's MyPlate encourages making half your plate
+              fruits and vegetables for healthy eating.
             </p>
           </div>
         </div>
         <div class="col-sm-3">
           <div class="well">
-            <p id="text_">
+            <p id="text_3">
               The nutrients in fruit are vital for health and maintenance of your body.
               The potassium can reduce your risk of heart disease.
             </p>
           </div>
           <div class="well">
-            <p id="text_">
-              Fruit are important sources of many nutrients,
-              including potassium, fiber, vitamin C and folate (folic acid).
+            <p id="text_4">
+              Fruit are important sources of many nutrients, including
+              potassium, fiber, vitamin C and folate (folic acid).
             </p>
           </div>
         </div>
@@ -339,32 +335,32 @@
     </div>
 
     <div class="container text-center"> <br><br>
-      <h3>Best Fruits</h3><br>
+      <h3 id="Best_Fruits">Best Fruits</h3><br>
       <br>
       <div class="row">
         <div class="col-sm-2">
           <img src="@/assets/images/6th.jpg" class="img-responsive" style="width:100%" alt="Image">
-          <p>Partner 1</p>
+          <p id="Partner_1">Partner 1</p>
         </div>
         <div class="col-sm-2">
           <img src="@/assets/images/7th.jpg" class="img-responsive" style="width:100%" alt="Image">
-          <p>Partner 2</p>
+          <p id="Partner_2">Partner 2</p>
         </div>
         <div class="col-sm-2">
           <img src="@/assets/images/8th.jpg" class="img-responsive" style="width:100%" alt="Image">
-          <p>Partner 3</p>
+          <p id="Partner_3">Partner 3</p>
         </div>
         <div class="col-sm-2">
           <img src="@/assets/images/9th.jpg" class="img-responsive" style="width:100%" alt="Image">
-          <p>Partner 4</p>
+          <p id="Partner_4">Partner 4</p>
         </div>
         <div class="col-sm-2">
           <img src="@/assets/images/10th.jpg" class="img-responsive" style="width:100%" alt="Image">
-          <p>Partner 5</p>
+          <p id="Partner_5">Partner 5</p>
         </div>
         <div class="col-sm-2">
           <img src="@/assets/images/11th.jpg" class="img-responsive" style="width:100%" alt="Image">
-          <p>Partner 6</p>
+          <p id="Partner_6">Partner 6</p>
         </div>
       </div>
     </div>
@@ -377,10 +373,11 @@
 </template>
 
 <script>
+/* eslint-disable */
 import axios from 'axios';
 
 import router from '../router';
-/* eslint-disable */
+
 export default {
   data() {
     return {
@@ -408,12 +405,13 @@ export default {
     } else if(localStorage.getItem('status') === "CustomerLoggedIn"){
       this.$router.push('/PurchaseItems');
     } else {
-      this.$router.push('/');
+      //this.$router.push('/');
     }
   },
   methods: {
     register() {
       if (this.checkForm()) {
+        console.log("register called")
         axios
           .post(process.env.API_URL + "/register", {
             usertype: this.usertype,
@@ -455,7 +453,7 @@ export default {
             password: this.password
           })
           .then(res => {
-            console.log(res)
+            // console.log(res)
             if (res.data.result === "Invalid Email / Password / UserType") {
               this.$Message.error(res.data.result);
               this.usertype = "";
@@ -493,17 +491,13 @@ export default {
             }
           })
           .catch(err => {
-            console.log("Not logged in");
+            // console.log("Not logged in");
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             localStorage.removeItem('status');
-            console.log(err);
+            // console.log(err);
           });
       }
-    },
-    changeState(newState) {
-      this.state = newState;
-      this.newItem = "";
     },
     // loginbutton: function(){
     //   this.$router.push('/Demo');
@@ -595,7 +589,7 @@ a:hover {
 .well {
   background-color: #cccab8;
 }
-#text_ {
+#text_1, #text_2, #text_3, #text_4 {
   color: #01070c;
 }
 #customer,
@@ -607,7 +601,7 @@ a:hover {
 sup {
   color: red;
 }
-#alert {
+#alert,#alert1,#alert2,#alert3,#alert4,#alert5,#alert6 {
   color: red;
   font-size: 100%;
 }

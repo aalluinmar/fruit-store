@@ -360,6 +360,7 @@ export default {
           sellerEmail: this.showName,
         })
         .then(res => {
+          console.log(res.status)
           if(res.data.numberOfFruitsFromDB === 0){
             this.$Message.error("res.data.result");
           } else {

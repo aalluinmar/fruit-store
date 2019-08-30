@@ -3,15 +3,13 @@
 /* eslint-disable no-unused-vars */
 import Vue from 'vue';
 import Router from 'vue-router';
-import FirstPage from '@/components/FirstPage';
-import Sellitems from '@/components/Sellitems';
-import PurchaseItems from '@/components/PurchaseItems';
-// import Logout from '@/components/Logout';
-// import store from '../store/index';
-// eslint-disable-next-line import/extensions
-// import auth from '@/services/authServices.js';
+import iView from 'iview/dist/iview';
+import FirstPage from '../components/FirstPage';
+import Sellitems from '../components/Sellitems';
+import PurchaseItems from '../components/PurchaseItems';
 
 Vue.use(Router);
+Vue.use(iView);
 function requireAuth(to, from, next) {
   if (localStorage.getItem('token')) {
     next(); // we are authorized, continue on to the requested route
@@ -47,13 +45,3 @@ export default new Router({
   ],
   mode: 'history',
 });
-// const openRoutes = ['Login', 'Signup'];
-
-// // eslint-disable-next-line no-undef
-// router.beforeEach((to, from, next) => {
-//   if (localStorage.getItem('user')) {
-//     next();
-//   } else {
-//     next('false');
-//   }
-// });
